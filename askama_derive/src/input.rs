@@ -54,6 +54,8 @@ impl TemplateInput<'_> {
             ..
         } = args;
 
+
+        
         // Validate the `source` and `ext` value together, since they are
         // related. In case `source` was used instead of `path`, the value
         // of `ext` is merged into a synthetic `path` value here.
@@ -88,9 +90,16 @@ impl TemplateInput<'_> {
 
         // Match extension against defined output formats
 
+        let raw_ext = match &source {
+            #[cfg(feature = "external-sources")]
+            Source::Path(p) => Path::new(p.as_ref()).extension().and_then(|s| s.to_str()),
+            _ => None,
+        };
+
         let escaping = escaping
             .as_deref()
             .or_else(|| path.extension().and_then(|s| s.to_str()))
+            .or_else(|| raw_ext)
             .unwrap_or_default();
 
         let escaper = config
